@@ -4,7 +4,6 @@ from asteroid import Asteroid
 from asteroidfields import AsteroidField
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from logger import log_state, log_event
-from circleshape import CircleShape
 from player import Player
 from shot import Shot
       
@@ -43,10 +42,15 @@ def main():
         updatable.update(dt) # Update all updatable objects
 
         for asteroid in asteroids:
-           if asteroid.collides_with(player):
-               log_event("player_hit")
-               print("Game over!")
-               sys.exit()
+            if asteroid.collides_with(player):
+                log_event("player_hit")
+                print("Game over!")
+                sys.exit()
+            for shot in shots:
+                if asteroid.collides_with(shot):
+                    log_event("asteroid_shot")
+                    asteroid.kill()  # Remove asteroid
+                    shot.kill()      # Remove shot
 
         screen.fill((0, 0, 0)) # Clear screen with black
         
