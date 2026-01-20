@@ -1,10 +1,12 @@
+import sys
 import pygame
 from asteroid import Asteroid
 from asteroidfields import AsteroidField
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from logger import log_state
+from logger import log_state, log_event
 from circleshape import CircleShape
 from player import Player
+from shot import Shot
       
 def main():
     print(f"Starting Asteroids with pygame version: {pygame.version.ver}")
@@ -14,16 +16,22 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
-    dt = 0
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
+    shots = pygame.sprite.Group()
 
-    Player.containers = (updatable, drawable)
-    Asteroid.containers = (updatable, drawable, asteroids)
-    AsteroidField.containers = (updatable)
-    player = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+    Shot.containers = (updatable, drawable, shots) # every shot object will be added to these groups
+
+    Asteroid.containers = (updatable, drawable, asteroids) # every asteroid object will be added to these groups
+
+    AsteroidField.containers = updatable # only added to updatable group because it doesn't need to be drawn
     asteroid_field = AsteroidField()
+
+    Player.containers = (updatable, drawable) # every player object will be added to these groups
+    player = Player(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+
+    dt = 0
 
 
     while True:
@@ -33,9 +41,18 @@ def main():
             if event.type == pygame.QUIT:
                 return
         updatable.update(dt) # Update all updatable objects
+
+        for asteroid in asteroids:
+           if asteroid.collides_with(player):
+               log_event("player_hit")
+               print("Game over!")
+               sys.exit()
+
         screen.fill((0, 0, 0)) # Clear screen with black
+        
         for obj in drawable:
             obj.draw(screen) # Draw all drawable objects
+
         pygame.display.flip() # Refresh the screen
         # clock.tick(60) Cap the frame rate at 60 FPS
         dt = clock.tick(60) / 1000.0 # Delta time in seconds
